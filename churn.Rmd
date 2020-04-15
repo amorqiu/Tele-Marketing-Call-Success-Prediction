@@ -98,9 +98,26 @@ num_columns <- c("MonthlyCharges", "TotalCharges")
 data[num_columns] <- sapply(data[num_columns], as.numeric)
 ```
 
+
 ```{r}
-train <- data[1:6000, ]
-test  <- data[6001:7032, ]
+normalize <- function(x) {
+  return ((x - min(x)) / (max(x) - min(x)))
+}
+data[num_columns] <- sapply(data[num_columns], normalize)
+```
+
+
+
+```{r}
+set.seed(111)
+
+# Split data, 80% distribution of churn for training
+train.index <- createDataPartition(
+    y = data$Churn, p = 0.8, list = FALSE
+)
+
+train <- data[train.index,]
+test <- data[-train.index,]
 ```
 
 
