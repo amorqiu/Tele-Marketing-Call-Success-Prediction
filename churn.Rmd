@@ -63,13 +63,14 @@ data %>%
   cor() %>%
   corrplot.mixed(upper = "circle", tl.col = "black", number.cex = 0.7)
 ```
-Strong correlation between tunure and TotalCharge
+correlation between tunure and TotalCharge, TotalCharges and MonthlyCharges
 
 
 
 
 
 ```{r}
+#set bins of tenure 
 data$tenure[data$tenure >=0 & data$tenure <= 12] <- '0-1 year'
 data$tenure[data$tenure >=12 & data$tenure <= 24] <- '1-2 year'
 data$tenure[data$tenure >=24 & data$tenure <= 36] <- '2-3 year'
@@ -81,15 +82,46 @@ data$tenure <- as.factor(data$tenure)
 ```
 
 ```{r}
+#Remove customerID
 data$customerID <- NULL
+```
+
+```{r}
+# replace the categorical feature "No phone service" and "No Internet Service Service" to "No"
+data <- data.frame(lapply(data, function(x) {
+                  gsub("No internet service", "No", x)}))
+
+data <- data.frame(lapply(data, function(x) {
+                  gsub("No phone service", "No", x)}))
+
+num_columns <- c("MonthlyCharges", "TotalCharges")
+data[num_columns] <- sapply(data[num_columns], as.numeric)
+```
+
+```{r}
+train <- data[1:6000, ]
+test  <- data[6001:7032, ]
 ```
 
 
 
+```{r}
+#Simple logistic regression
+logit.model <- glm(Churn ~ ., data = train, family = "binomial")
+summary(logit.model)
+```
 
 
+```{r}
+pred <- predict(logit.model, type = "response", newdata = test)
+summary(pred)
+#test$prob <- pred
 
+# Using probability cutoff of 50%.
 
-
+pred_churn <- factor(ifelse(pred >= 0.5, "Yes", "No"))
+actual_churn <- factor(ifelse(test$Churn == "Yes","Yes","No"))
+table(actual_churn,pred_churn)
+```
 
 
