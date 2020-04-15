@@ -20,6 +20,12 @@ The data set includes information about:
 - Customer account information – how long they’ve been a customer, contract, payment method, paperless billing, monthly charges, and total charges
 - Demographic info about customers – gender, age range, and if they have partners and dependents
 
+```{r}
+library(dplyr)
+library(corrplot)
+```
+
+
 ### Data Exploration
 
 ```{r}
@@ -38,23 +44,45 @@ summary(data)
 
 **Factor**
 ```{r}
+# Factor seniorcitizen
 data$SeniorCitizen <- as.factor(data$SeniorCitizen)
 ```
 
 
 **Missing Values**
+There are only 11 missing values in TotalCharges column, the number of missing values is relatively small, so we decide to remove those 11 rows.
+```{r}
+# remove the rows with missing value
+data <- na.omit(data)
+```
+
+
+```{r}
+data %>%
+  dplyr::select (TotalCharges, MonthlyCharges, tenure) %>%
+  cor() %>%
+  corrplot.mixed(upper = "circle", tl.col = "black", number.cex = 0.7)
+```
+Strong correlation between tunure and TotalCharge
 
 
 
 
 
+```{r}
+data$tenure[data$tenure >=0 & data$tenure <= 12] <- '0-1 year'
+data$tenure[data$tenure >=12 & data$tenure <= 24] <- '1-2 year'
+data$tenure[data$tenure >=24 & data$tenure <= 36] <- '2-3 year'
+data$tenure[data$tenure >=36 & data$tenure <= 48] <- '3-4 year'
+data$tenure[data$tenure >=48 & data$tenure <= 60] <- '4-5 year'
+data$tenure[data$tenure >=60 & data$tenure <= 72] <- '5-6 year'
 
+data$tenure <- as.factor(data$tenure)
+```
 
-
-
-
-
-
+```{r}
+data$customerID <- NULL
+```
 
 
 
