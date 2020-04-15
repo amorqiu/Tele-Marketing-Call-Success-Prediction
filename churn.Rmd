@@ -1,0 +1,67 @@
+---
+title: "Telecom Customer Churn Prediction"
+author: TO 628 Group 8
+date: 4/14/2020
+output: html_document
+---
+
+## Introduction
+
+The objective of this project is to predict churn or no churn in order to retain the customers in the telco company. The reason we choose this topic is that customer churn is one of the most important metrics for a business to evaluate. Customer churn impedes growth, so companies should have a sense of which kind of group are going to stop to use its product / service.
+
+### About the data (from data description on Kaggle)
+
+https://www.kaggle.com/blastchar/telco-customer-churn
+
+The data set includes information about:
+
+- Customers who left within the last month – the column is called Churn
+- Services that each customer has signed up for – phone, multiple lines, internet, online security, online backup, device protection, tech support, and streaming TV and movies
+- Customer account information – how long they’ve been a customer, contract, payment method, paperless billing, monthly charges, and total charges
+- Demographic info about customers – gender, age range, and if they have partners and dependents
+
+### Data Exploration
+
+```{r}
+data <- read.csv("Churn.csv")
+```
+
+```{r}
+str(data)
+```
+
+
+```{r}
+summary(data)
+```
+
+
+**Factor**
+```{r}
+data$SeniorCitizen <- as.factor(data$SeniorCitizen)
+```
+
+
+**Missing Values**
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
