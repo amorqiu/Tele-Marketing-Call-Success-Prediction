@@ -23,7 +23,9 @@ The data set includes information about:
 ```{r}
 library(dplyr)
 library(corrplot)
+library(randomForest)
 ```
+
 
 
 ### Data Exploration
@@ -141,4 +143,29 @@ actual_churn <- factor(ifelse(test$Churn == "Yes","Yes","No"))
 table(actual_churn,pred_churn)
 ```
 
+
+```{r}
+#RandomForest Model
+rf.model <- randomForest(Churn ~ ., data = train)
+rfpred <- predict(rf.model, newdata = test)
+#summary(rfpred)
+rf_pred_churn <- factor(rfpred)
+rf_actual_churn <- factor(ifelse(test$Churn == "Yes","Yes","No"))
+table(rf_actual_churn,rf_pred_churn)
+
+```
+```{r}
+accuracy <- function(predicted, trueval, model, hideoutput = F) {
+  stopifnot(length(predicted) == length(trueval))
+  result <- sum(predicted == trueval) / length(predicted)
+  if (!hideoutput) {cat("Model:", model, "had", result, "accuracy\n")}
+  return(result)
+}
+```
+
+
+```{r}
+acc_rf = accuracy(rfpred, test$Churn, "Random Forest Classification", TRUE)
+acc_rf
+```
 
