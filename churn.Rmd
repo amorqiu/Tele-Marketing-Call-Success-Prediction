@@ -24,6 +24,8 @@ The data set includes information about:
 library(dplyr)
 library(corrplot)
 library(randomForest)
+library(caret)
+library(kernlab)
 ```
 
 
@@ -117,7 +119,6 @@ set.seed(111)
 train.index <- createDataPartition(
     y = data$Churn, p = 0.8, list = FALSE
 )
-
 train <- data[train.index,]
 test <- data[-train.index,]
 ```
@@ -137,7 +138,6 @@ summary(pred)
 #test$prob <- pred
 
 # Using probability cutoff of 50%.
-
 pred_churn <- factor(ifelse(pred >= 0.5, "Yes", "No"))
 actual_churn <- factor(ifelse(test$Churn == "Yes","Yes","No"))
 table(actual_churn,pred_churn)
@@ -167,5 +167,41 @@ accuracy <- function(predicted, trueval, model, hideoutput = F) {
 ```{r}
 acc_rf = accuracy(rfpred, test$Churn, "Random Forest Classification", TRUE)
 acc_rf
+```
+
+```
+SVM's
+```
+
+```{r}
+# SVM model
+churn_classifier <- ksvm(Churn ~ ., data = train, kernel = "vanilladot")
+# predictions on testing dataset
+churn_predictions <- predict(churn_classifier, test)
+head(churn_predictions)
+table(churn_predictions, test$Churn)
+```
+
+
+```{r}
+# look only at agreement vs. non-agreement
+# construct a vector of TRUE/FALSE indicating correct/incorrect predictions
+agreement <- churn_predictions == test$Churn
+table(agreement)
+prop.table(table(agreement))
+```
+```{r}
+# different kernels are different mathmetical functions, the second SVM model
+churn_classifier_rbf <- ksvm(Churn ~ ., data = train, kernel = "rbfdot")
+churn_predictions_rbf <- predict(churn_classifier_rbf, test)
+agreement_rbf <- churn_predictions_rbf == test$Churn
+table(agreement_rbf)
+prop.table(table(agreement_rbf))
+```
+```{r}
+table(churn_predictions_rbf, test$Churn)
+```
+```
+Based on the two cross tables, the second model with the rbfdot kernel has a bettwe result.
 ```
 
