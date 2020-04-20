@@ -49,13 +49,6 @@ summary(data)
 ```
 
 
-
-```{r}
-# create a random sample for training and test data
-set.seed(12345)
-data <- data[order(runif(1000)), ]
-```
-
 **Factor**
 ```{r}
 # Factor seniorcitizen
@@ -389,8 +382,6 @@ ConvertToYesNo <- function(myprediction) {
 ```
 
 
-
-
 ```{r}
 logit.pred_churn <- ConvertToYesNo(logit.pred_churn)
 logit.pred_churn2 <- ConvertToYesNo(logit.pred_churn2)
@@ -402,8 +393,6 @@ churn_predictions_rbf <- ConvertToYesNo(churn_predictions_rbf)
 test_pred_21 <- ConvertToYesNo(test_pred_21)
 test_pred_59 <- ConvertToYesNo(test_pred_59)
 ```
-
-
 
 
 ```{r}
@@ -418,19 +407,12 @@ model_combined_results <- data.frame(log_prediction_train, log_prediction_train_
 
 
 ```{r}
-names(model_combined_results) <- names(stacked_data)
-```
-
-
-
-```{r}
 library(party)
-stacked_model <- ctree(train$Churn ~ . , data = train)
+stacked_model <- ctree(train$Churn ~ . , data = model_combined_results)
 ```
 
 
 ```{r}
-stacked_model_prediction = predict(stacked_model, stacked_data, type = "response")
-#accuracy(stacked_model_prediction, test$Churn, "Decision Tree", TRUE)
+stacked_model_prediction = predict(stacked_model, train, type = "response")
+accuracy(stacked_model_prediction, train$Churn, "Decision Tree", TRUE)
 ```
-
