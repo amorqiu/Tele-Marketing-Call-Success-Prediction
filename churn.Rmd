@@ -143,6 +143,24 @@ actual_churn <- factor(ifelse(test$Churn == "Yes","Yes","No"))
 table(actual_churn,pred_churn)
 ```
 
+```{r}
+#Improved logistic regression
+logit.model2 <- glm(Churn ~ tenure + InternetService + SeniorCitizen + PhoneService + MultipleLines + OnlineSecurity + TechSupport + StreamingTV + Contract + PaperlessBilling + PaymentMethod + MonthlyCharges,, data = train, family = binomial) 
+
+summary(logit.model2)
+```
+
+```{r}
+pred2 <- predict(logit.model2, type = "response", newdata = test)
+summary(pred2)
+#test$prob <- pred
+
+# Using probability cutoff of 50%.
+pred_churn2 <- factor(ifelse(pred2 >= 0.5, "Yes", "No"))
+actual_churn2 <- factor(ifelse(test$Churn == "Yes","Yes","No"))
+table(actual_churn2, pred_churn2)
+```
+
 
 ```{r}
 #RandomForest Model
