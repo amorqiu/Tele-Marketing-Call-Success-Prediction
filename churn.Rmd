@@ -21,11 +21,14 @@ The data set includes information about:
 - Demographic info about customers – gender, age range, and if they have partners and dependents
 
 ```{r}
+install.packages("corrplot")
+install.packages("randomForest")
 library(dplyr)
 library(corrplot)
 library(randomForest)
 library(caret)
 library(kernlab)
+library(neuralnet)
 ```
 
 
@@ -121,6 +124,7 @@ train.index <- createDataPartition(
 )
 train <- data[train.index,]
 test <- data[-train.index,]
+
 ```
 
 
@@ -143,6 +147,23 @@ actual_churn <- factor(ifelse(test$Churn == "Yes","Yes","No"))
 table(actual_churn,pred_churn)
 ```
 
+```{r}
+#Improved logistic regression
+logit.model2 <- glm(Churn ~ tenure + InternetService + SeniorCitizen + PhoneService + MultipleLines + OnlineSecurity + TechSupport + StreamingTV + Contract + PaperlessBilling + PaymentMethod + MonthlyCharges, data = train, family = binomial) 
+
+summary(logit.model2)
+```
+
+```{r}
+pred2 <- predict(logit.model2, type = "response", newdata = test)
+summary(pred2)
+#test$prob <- pred
+
+# Using probability cutoff of 50%.
+pred_churn2 <- factor(ifelse(pred2 >= 0.5, "Yes", "No"))
+actual_churn2 <- factor(ifelse(test$Churn == "Yes","Yes","No"))
+table(actual_churn2, pred_churn2)
+```
 
 ```{r}
 #RandomForest Model
@@ -163,11 +184,23 @@ accuracy <- function(predicted, trueval, model, hideoutput = F) {
 }
 ```
 
+```{r}
+library(C50)
+boost100 <- C5.0(train[-20], train$Churn,
+                       trials = 100)
+
+boost_pred100 <- predict(boost100, test)
+CrossTable(test$Churn, boost_pred100,
+           prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE,
+           dnn = c('actual default', 'predicted default'))
+
+```
 
 ```{r}
 acc_rf = accuracy(rfpred, test$Churn, "Random Forest Classification", TRUE)
 acc_rf
 ```
+
 
 ```
 SVM's
@@ -175,7 +208,7 @@ SVM's
 
 ```{r}
 # SVM model
-churn_classifier <- ksvm(Churn ~ ., data = train, kernel = "vanilladot")
+churn_classifier <- ksvm(Churn ~ ., data = train, kernel = "besseldot")
 # predictions on testing dataset
 churn_predictions <- predict(churn_classifier, test)
 head(churn_predictions)
@@ -204,4 +237,51 @@ table(churn_predictions_rbf, test$Churn)
 ```
 Based on the two cross tables, the second model with the rbfdot kernel has a bettwe result.
 ```
+
+```
+KNN
+```
+
+```{r}
+library(class)
+
+train_label<-train$Churn
+test_label<-test$Churn
+
+
+knn_train_data <- as.data.frame(model.matrix(~ . -1,data=train))
+knn_train_data<-knn_train_data[-20]
+
+knn_test_data <- as.data.frame(model.matrix(~ . -1,data=test))
+knn_test_data<-knn_test_data[-20]
+
+test_pred <- knn(train = knn_train_data, test = knn_test_data, cl = train_label, k = 55)
+
+#library(gmodels)
+CrossTable(test_label, test_pred)
+p1=(1023 + 335) / 1405
+
+test_pred_3 <- knn(train = knn_train_data, test = knn_test_data, cl = train_label,k = 3)
+CrossTable(test_label, test_pred_3)
+p2=(338 + 1012) / 1405
+
+test_pred_21 <- knn(train = knn_train_data, test = knn_test_data, cl = train_label, k = 21)
+CrossTable(test_label, test_pred_21)
+p3=(1025 + 345) / 1405
+
+test_pred_59 <- knn(train = knn_train_data, test = knn_test_data, cl = train_label, k = 59)
+CrossTable(test_label, test_pred_59)
+p4=(1022+334)/1405
+
+k=sqrt(1405/0.2/2)
+k
+
+
+````
+
+
+```{r}
+a1 = accuracy(logit.model, test$Churn, "Log Prediction Plain", TRUE)
+
+````
 
