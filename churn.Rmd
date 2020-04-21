@@ -149,6 +149,9 @@ CrossTable(test$Churn, logit.pred_churn,
            prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE,
            dnn = c('actual default', 'predicted default'))
 ```
+```
+Through the simple logistic regression, where all variables are included, we can see tenure, contract and internet service are having significant impact on the prediction result. Especially for tenure, the increase in year is correlated with declined probability of customer churn. The model reaches an accuracy of 80.07%, with an AIC of 4750.5.
+```
 
 ```{r}
 #Improved logistic regression
@@ -170,7 +173,9 @@ CrossTable(test$Churn, logit.pred_churn2,
            prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE,
            dnn = c('actual default', 'predicted default'))
 ```
-
+```
+For the improved logistic regression model, only certain variables are included. The variables are selected if they have low p-value (<0.05). Also, the variables included here have higher coefficient. However, there is only a slight improvement in the performance: the accuracy for this model is 80.35%, and the AIC is 4748. 
+```
 
 ```{r}
 accuracy <- function(predicted, trueval, model, hideoutput = F) {
@@ -193,6 +198,9 @@ acc_dt = accuracy(decisionTree_pred, test$Churn, "Random Forest Classification",
 acc_dt
 ```
 
+```
+Through the Decision Tree model, where all variables are included. By using C5.0 formula, the model has an accuracy of 77.94% which is a little bit lower than other models.
+```
 
 
 ```{r}
@@ -209,6 +217,12 @@ acc_rf = accuracy(rfpred, test$Churn, TRUE)
 acc_rf
 ```
 
+```
+Tring to improve Decision Tree model by using a Random Forest model, where all variables are included. The model has an accuracy of 78.01% which is a little bit better than the Decision Tree model.
+```
+
+
+
 ```{r}
 boost100 <- C5.0(train[-20], train$Churn, trials = 100)
 boost_pred100 <- predict(boost100, test)
@@ -218,6 +232,9 @@ CrossTable(test$Churn, boost_pred100, prop.chisq = FALSE, prop.c = FALSE, prop.r
 ```{r}
 acc_rf_boost = accuracy(boost_pred100, test$Churn, "Random Forest Classification", TRUE)
 acc_rf_boost
+```
+```
+Tring to improve Decision Tree model by adding boost to the decision tree model, also include all variables . The model has an accuracy of 78.80% which is a little bit better than the Decision Tree model and Random Forest model. However, all three models still lower than other models, which means this dataset may not fit with using Tree prediction models to predict.
 ```
 
 
@@ -230,37 +247,34 @@ SVM's
 churn_classifier <- ksvm(Churn ~ ., data = train, kernel = "besseldot")
 # predictions on testing dataset
 churn_predictions <- predict(churn_classifier, test)
-head(churn_predictions)
-
 CrossTable(test$Churn, churn_predictions,
            prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE,
            dnn = c('actual default', 'predicted default'))
 ```
-
-
 ```{r}
 # look only at agreement vs. non-agreement
 # construct a vector of TRUE/FALSE indicating correct/incorrect predictions
 agreement <- churn_predictions == test$Churn
 table(agreement)
 prop.table(table(agreement))
-
 ```
+
+
 ```{r}
 # different kernels are different mathmetical functions, the second SVM model
-churn_classifier_rbf <- ksvm(Churn ~ ., data = train, kernel = "rbfdot")
-churn_predictions_rbf <- predict(churn_classifier_rbf, test)
-agreement_rbf <- churn_predictions_rbf == test$Churn
-table(agreement_rbf)
-prop.table(table(agreement_rbf))
+churn_classifier_van <- ksvm(Churn ~ ., data = train, kernel = "vanilladot")
+churn_predictions_van <- predict(churn_classifier_van, test)
+agreement_van <- churn_predictions_van == test$Churn
+table(agreement_van)
+prop.table(table(agreement_van))
 ```
 ```{r}
-CrossTable(test$Churn, churn_predictions_rbf,
+CrossTable(test$Churn, churn_predictions_van,
            prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE,
            dnn = c('actual default', 'predicted default'))
 ```
 ```
-Based on the two cross tables, the second model with the rbfdot kernel has a bettwe result.
+We tried 8 kernels and assessed the model by prediction accuracy and CrossTable result. We focus more on the number that model predict no but actual yes.Becuase we would like to use this model to target people who are going to stop the service and take actions to retain customers,it’s more serious if we predict they won’t stop the service but actually they will.The SVM with besseldot kernel has the best result.
 ```
 
 ```
@@ -308,7 +322,7 @@ test_pred_59 <- knn(train = knn_train_data, test = knn_test_data, cl = train_lab
 CrossTable(test_label, test_pred_59)
 p4=(1022+334)/1405
 ```
-
+``````WE tried different k values to make our predictions. When k=55, the accuracy is 96.65%, when k=3, the accuracy is 96.08%, when k=21, the accuracy is 97.5%, and when k=59, the frequently used k value sqrt(sample size *2) the accuracy is 96.5%. When k is smaller. data points are easily be effected by nearby data points. However, if k is large there will be lower variance and higher bias. So we need to make some trade off on bias and accuracy. So we will choose k=21 as our final model where k is relatively in between and the accuracy is good. ```
 
 
 ```{r}
@@ -330,7 +344,7 @@ a3 = accuracy(decisionTree_pred, test$Churn, "Decision Tree", TRUE)
 a4 = accuracy(boost_pred100, test$Churn, "Decision Tree with boost100", TRUE)
 a5 = accuracy(rfpred, test$Churn, "Random Forest", TRUE)
 a6 = accuracy(churn_predictions, test$Churn, "SVM(besseldot) ", TRUE)
-a7 = accuracy(churn_predictions_rbf, test$Churn, "SVM(rdf)", TRUE)
+a7 = accuracy(churn_predictions_van, test$Churn, "SVM(rdf)", TRUE)
 a8 = accuracy(test_pred_21, test$Churn, "KNN(21)", TRUE)
 a9 = accuracy(test_pred_59, test$Churn, "KNN(59)", TRUE)
 
@@ -350,7 +364,15 @@ acc_mat <- data.frame(ModelName = names, accuracy = acc_predictions) %>% print
 dotchart(acc_predictions, labels = names, main = "Accuracy of the models", xlab = "Accuracy")
 ```
 
+The graph above shows the accuracy of the models, We can see that KNN with the k value of 21 has the best predictive accuracy of any of the models, it is interesting that other models are around the 80 %. Random has the lowest acuracy.
+
+
+
+
+
+We also decide to create a stacked model in order to create a better model. We use ctree to build model and run ctree on top of the model to allow our models to vote.
 ```{r}
+#Use all models to predict train data
 log_prediction_train <- predict(logit.model, type = "response", newdata = train)
 log_prediction_train <- factor(ifelse(log_prediction_train >= 0.5, "Yes", "No"))
 
@@ -364,7 +386,7 @@ rf_prediction_train <- predict(rf.model, newdata = train)
 boost100_prediction_train <- predict(boost100, train)
 
 svm_prediction_train <- predict(churn_classifier, train)
-svm_rbf_prediction_train <- predict(churn_classifier_rbf, train)
+svm_van_prediction_train <- predict(churn_classifier_van, train)
 
 
 knn59_prediction_train <- knn(train = knn_train_data, test = knn_train_data, cl = train_label, k = 59)
@@ -376,7 +398,7 @@ knn21_prediction_train <- knn(train = knn_train_data, test = knn_train_data, cl 
 ```{r}
 ConvertToYesNo <- function(myprediction) {
   result <- myprediction %>% as.factor()
-  levels(result) <- c("no", "yes")
+  levels(result) <- c("No", "Yes")
   result
 }
 ```
@@ -389,30 +411,37 @@ decisionTree_pred <- ConvertToYesNo(decisionTree_pred)
 boost_pred100 <- ConvertToYesNo(boost_pred100)
 rfpred <- ConvertToYesNo(rfpred)
 churn_predictions <- ConvertToYesNo(churn_predictions)
-churn_predictions_rbf <- ConvertToYesNo(churn_predictions_rbf)
+churn_predictions_van <- ConvertToYesNo(churn_predictions_van)
 test_pred_21 <- ConvertToYesNo(test_pred_21)
 test_pred_59 <- ConvertToYesNo(test_pred_59)
 ```
 
 
 ```{r}
-stacked_data = data.frame(logit.pred_churn, logit.pred_churn2, decisionTree_pred, boost_pred100, rfpred, churn_predictions, churn_predictions_rbf, test_pred_21, test_pred_59) %>% as.tbl()
-
+stacked_data = data.frame(logit.pred_churn, logit.pred_churn2, decisionTree_pred, boost_pred100, rfpred, churn_predictions, churn_predictions_van, test_pred_21, test_pred_59,test$Churn) %>% as.tbl()
 ```
 
 
 ```{r}
-model_combined_results <- data.frame(log_prediction_train, log_prediction_train_advanced, decision_prediction_train, rf_prediction_train, boost100_prediction_train, svm_prediction_train, svm_rbf_prediction_train, knn59_prediction_train, knn21_prediction_train) %>% as.tbl()
+model_combined_results <- data.frame(log_prediction_train, log_prediction_train_advanced, decision_prediction_train, rf_prediction_train, boost100_prediction_train, svm_prediction_train, svm_van_prediction_train, knn59_prediction_train, knn21_prediction_train,train$Churn) %>% as.tbl()
+```
+
+```{r}
+names(model_combined_results) <- names(stacked_data)
 ```
 
 
 ```{r}
 library(party)
-stacked_model <- ctree(train$Churn ~ . , data = model_combined_results)
+#Build ctree to 
+stacked_model <- ctree(test.Churn ~ . , data = model_combined_results)
+plot(stacked_model)
 ```
 
 
 ```{r}
-stacked_model_prediction = predict(stacked_model, train, type = "response")
-accuracy(stacked_model_prediction, train$Churn, "Decision Tree", TRUE)
+stacked_data <- data.frame(stacked_data)
+stacked_model_prediction <- predict(stacked_model, stacked_data)
+confusionMatrix(as.factor(stacked_model_prediction), as.factor(stacked_data$test.Churn))
 ```
+The model plot shows that stacked ctree model uses decision tree with boosting of 100 trials as the base predictor and adjust some predictions bases on other models. We should expect the accuracy will improve from 80%. The result shows that the accuracy is 95%. But it’s still lower than KNN model.
